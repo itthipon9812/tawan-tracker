@@ -1,0 +1,1767 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Learning Tracker ☀️</title>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* ══════════════════════ TOKENS ══════════════════════ */
+:root {
+  --sky:     #3B82F6;
+  --sky-l:   #EFF6FF;
+  --sky-m:   #BFDBFE;
+  --sky-d:   #1D4ED8;
+  --teal:    #0D9488;
+  --teal-l:  #CCFBF1;
+  --green:   #16A34A;
+  --green-l: #DCFCE7;
+  --amber:   #D97706;
+  --amber-l: #FEF3C7;
+  --amber-m: #FDE68A;
+  --rose:    #E11D48;
+  --rose-l:  #FFE4E6;
+  --purple:  #7C3AED;
+  --purple-l:#EDE9FE;
+  --orange:  #EA580C;
+  --orange-l:#FFEDD5;
+  --ink:     #0F172A;
+  --ink2:    #334155;
+  --ink3:    #64748B;
+  --ink4:    #94A3B8;
+  --border:  #E2E8F0;
+  --border2: #CBD5E1;
+  --bg:      #F8FAFC;
+  --bg2:     #F1F5F9;
+  --white:   #FFFFFF;
+  --card-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.05);
+  --card-shadow-hover: 0 4px 12px rgba(0,0,0,.1), 0 8px 24px rgba(0,0,0,.08);
+  --r: 18px;
+  --r-sm: 12px;
+  --r-xs: 8px;
+  --fs-base: 16px;
+}
+
+/* ══════════════════════ RESET ══════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: var(--fs-base); -webkit-text-size-adjust: 100%; }
+body {
+  font-family: 'Sarabun', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ══════════════════════ TOPBAR ══════════════════════ */
+.topbar {
+  background: var(--white);
+  border-bottom: 1.5px solid var(--border);
+  padding: 0 28px;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 12px rgba(0,0,0,.06);
+  flex-shrink: 0;
+}
+.brand {
+  display: flex; align-items: center; gap: 12px;
+  cursor: pointer; border-radius: var(--r-sm);
+  padding: 6px 10px; margin: -6px -10px;
+  transition: background .15s;
+}
+.brand:hover { background: var(--sky-l); }
+.brand-avatar {
+  width: 44px; height: 44px; border-radius: 14px;
+  background: linear-gradient(135deg, #3B82F6, #8B5CF6);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(59,130,246,.35);
+}
+.brand-name {
+  font-family: 'Prompt', sans-serif;
+  font-size: 17px; font-weight: 700; color: var(--ink);
+  line-height: 1.2;
+}
+.brand-sub { font-size: 12px; color: var(--ink3); margin-top: 1px; }
+.brand-edit-hint {
+  font-size: 11px; color: var(--sky); margin-top: 2px;
+  opacity: 0; transition: opacity .2s;
+}
+.brand:hover .brand-edit-hint { opacity: 1; }
+
+.nav { display: flex; gap: 6px; }
+.nav-btn {
+  padding: 9px 18px;
+  border-radius: 30px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--ink3);
+  font-family: 'Sarabun', sans-serif;
+  font-size: 14px; font-weight: 500;
+  cursor: pointer; transition: all .18s;
+  white-space: nowrap;
+}
+.nav-btn:hover { border-color: var(--sky); color: var(--sky); background: var(--sky-l); }
+.nav-btn.active {
+  background: var(--sky); border-color: var(--sky);
+  color: white; font-weight: 600;
+  box-shadow: 0 2px 10px rgba(59,130,246,.35);
+}
+
+/* ══════════════════════ CONTENT ══════════════════════ */
+.content { flex: 1; overflow-y: auto; padding: 24px 28px; }
+.content::-webkit-scrollbar { width: 5px; }
+.content::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 5px; }
+
+.view { display: none; animation: fadeUp .25s ease; }
+.view.active { display: block; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ══════════════════════ CARDS ══════════════════════ */
+.card {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r);
+  padding: 22px 24px;
+  box-shadow: var(--card-shadow);
+}
+.card + .card, .card.mt { margin-top: 16px; }
+.card-title {
+  font-family: 'Prompt', sans-serif;
+  font-size: 15px; font-weight: 600; color: var(--ink);
+  margin-bottom: 18px;
+  display: flex; align-items: center; gap: 8px;
+}
+
+/* ══════════════════════ GRID ══════════════════════ */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.g4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
+.mb { margin-bottom: 16px; }
+
+/* ══════════════════════ KPI ══════════════════════ */
+.kpi {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r);
+  padding: 20px 22px;
+  box-shadow: var(--card-shadow);
+  position: relative; overflow: hidden;
+}
+.kpi::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0;
+  width: 100%; height: 3px;
+  background: var(--accent, var(--sky));
+  border-radius: 0 0 var(--r) var(--r);
+}
+.kpi-icon { font-size: 26px; margin-bottom: 8px; display: block; }
+.kpi-val {
+  font-family: 'Prompt', sans-serif;
+  font-size: 32px; font-weight: 700;
+  color: var(--accent, var(--sky));
+  line-height: 1;
+}
+.kpi-label { font-size: 13px; color: var(--ink3); margin-top: 5px; }
+
+/* ══════════════════════ TAGS & BADGES ══════════════════════ */
+.tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 12px; border-radius: 20px;
+  font-size: 12px; font-weight: 600; border: 1.5px solid;
+}
+.tag-blue   { background: var(--sky-l);   border-color: var(--sky-m);  color: var(--sky-d); }
+.tag-amber  { background: var(--amber-l); border-color: var(--amber-m);color: var(--amber); }
+.tag-green  { background: var(--green-l); border-color: #86EFAC;       color: var(--green); }
+.tag-purple { background: var(--purple-l);border-color: #C4B5FD;       color: var(--purple); }
+.tag-teal   { background: var(--teal-l);  border-color: #99F6E4;       color: var(--teal); }
+
+/* ══════════════════════ BUTTONS ══════════════════════ */
+.btn {
+  padding: 10px 22px; border-radius: 30px;
+  font-family: 'Sarabun', sans-serif; font-size: 15px; font-weight: 600;
+  cursor: pointer; transition: all .18s; border: 1.5px solid;
+}
+.btn-primary { background: var(--sky); border-color: var(--sky); color: white; }
+.btn-primary:hover { background: var(--sky-d); box-shadow: 0 4px 12px rgba(59,130,246,.4); }
+.btn-ghost { background: transparent; border-color: var(--border2); color: var(--ink2); }
+.btn-ghost:hover { border-color: var(--sky); color: var(--sky); background: var(--sky-l); }
+.btn-danger { background: var(--rose-l); border-color: #FCA5A5; color: var(--rose); }
+
+/* ══════════════════════ INPUTS ══════════════════════ */
+.lbl { display: block; font-size: 12px; font-weight: 600; color: var(--ink3); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+.inp {
+  width: 100%; padding: 10px 14px;
+  background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: var(--r-xs); color: var(--ink);
+  font-family: 'Sarabun', sans-serif; font-size: 15px;
+  outline: none; transition: border-color .18s, box-shadow .18s;
+}
+.inp:focus { border-color: var(--sky); box-shadow: 0 0 0 3px rgba(59,130,246,.12); background: var(--white); }
+.inp::placeholder { color: var(--ink4); }
+select.inp option { background: white; }
+textarea.inp { resize: vertical; min-height: 68px; }
+
+/* ══════════════════════ SEP ══════════════════════ */
+.sep { height: 1px; background: var(--border); margin: 18px 0; }
+
+/* ══════════════════════ TOAST ══════════════════════ */
+#toast {
+  position: fixed; bottom: 28px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--ink); color: white;
+  padding: 13px 26px; border-radius: 30px;
+  font-size: 14px; font-weight: 600;
+  box-shadow: 0 8px 32px rgba(0,0,0,.2);
+  z-index: 9999; opacity: 0; pointer-events: none;
+  transition: all .3s cubic-bezier(.4,0,.2,1);
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ══════════════════════ MINI BAR ══════════════════════ */
+.mbar { height: 8px; background: var(--bg2); border-radius: 8px; overflow: hidden; }
+.mfill { height: 100%; border-radius: 8px; transition: width .8s cubic-bezier(.4,0,.2,1); }
+
+/* ══════════════════════ MODAL ══════════════════════ */
+.overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(15,23,42,.5); backdrop-filter: blur(6px);
+  z-index: 500; align-items: center; justify-content: center;
+}
+.overlay.open { display: flex; }
+.modal-box {
+  background: var(--white); border-radius: var(--r);
+  padding: 30px 32px; width: 440px; max-width: 92vw;
+  box-shadow: 0 20px 60px rgba(0,0,0,.2);
+  animation: fadeUp .25s ease;
+}
+.modal-title {
+  font-family: 'Prompt', sans-serif;
+  font-size: 18px; font-weight: 700; color: var(--ink);
+  margin-bottom: 22px;
+}
+
+/* ══════════════════════ DASHBOARD ══════════════════════ */
+.dash-hero {
+  background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+  border-radius: var(--r); padding: 26px 30px; margin-bottom: 16px;
+  color: white; position: relative; overflow: hidden;
+}
+.dash-hero::before {
+  content: '';
+  position: absolute; right: -30px; top: -30px;
+  width: 180px; height: 180px; border-radius: 50%;
+  background: rgba(255,255,255,.08);
+}
+.dash-hero::after {
+  content: '';
+  position: absolute; right: 40px; bottom: -20px;
+  width: 100px; height: 100px; border-radius: 50%;
+  background: rgba(255,255,255,.05);
+}
+.hero-name {
+  font-family: 'Prompt', sans-serif;
+  font-size: 26px; font-weight: 800; line-height: 1.1;
+}
+.hero-sub { font-size: 14px; opacity: .85; margin-top: 4px; }
+.hero-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.hero-tag {
+  padding: 5px 14px; border-radius: 20px;
+  background: rgba(255,255,255,.2);
+  border: 1px solid rgba(255,255,255,.35);
+  font-size: 13px; font-weight: 600;
+}
+.hero-days {
+  position: absolute; right: 30px; top: 50%;
+  transform: translateY(-50%);
+  text-align: center;
+  font-family: 'Prompt', sans-serif;
+}
+.hero-days-num { font-size: 44px; font-weight: 800; line-height: 1; }
+.hero-days-lbl { font-size: 12px; opacity: .8; }
+
+/* Cat bars */
+.cat-row { margin-bottom: 13px; }
+.cat-row:last-child { margin-bottom: 0; }
+.cat-row-head { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px; }
+
+/* Themes scroll */
+.themes-scroll {
+  display: flex; gap: 10px; overflow-x: auto;
+  padding-bottom: 4px;
+}
+.themes-scroll::-webkit-scrollbar { height: 3px; }
+.themes-scroll::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+.theme-pill {
+  flex-shrink: 0; padding: 8px 16px; border-radius: 20px;
+  background: var(--bg2); border: 1.5px solid var(--border);
+  font-size: 13px; cursor: pointer; transition: all .18s;
+  white-space: nowrap; color: var(--ink2);
+}
+.theme-pill:hover { border-color: var(--sky); color: var(--sky); }
+.theme-pill.now {
+  background: var(--sky); border-color: var(--sky);
+  color: white; font-weight: 600;
+  box-shadow: 0 2px 8px rgba(59,130,246,.35);
+}
+.theme-pill.past { opacity: .55; }
+
+/* Skill recs */
+.skill-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.skill-item {
+  padding: 14px 16px; border-radius: var(--r-sm);
+  border: 1.5px solid var(--border); background: var(--bg);
+  border-left: 4px solid var(--ac, var(--sky));
+  transition: box-shadow .18s;
+}
+.skill-item:hover { box-shadow: var(--card-shadow-hover); }
+.skill-area { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--ac, var(--sky)); margin-bottom: 5px; }
+.skill-text { font-size: 13px; color: var(--ink2); line-height: 1.55; }
+.skill-src  { font-size: 11px; color: var(--ink4); margin-top: 7px; }
+
+/* Star section */
+.star-section {
+  background: linear-gradient(135deg, var(--amber-l), #FFFBEB);
+  border: 1.5px solid var(--amber-m); border-radius: var(--r);
+  padding: 20px 24px; margin-bottom: 16px;
+}
+.star-big {
+  font-family: 'Prompt', sans-serif;
+  font-size: 40px; font-weight: 800; color: var(--amber);
+  line-height: 1;
+}
+.star-track { height: 12px; background: rgba(217,119,6,.15); border-radius: 12px; overflow: hidden; margin: 10px 0; }
+.star-fill  { height: 100%; background: linear-gradient(90deg, var(--amber), var(--amber-m)); border-radius: 12px; transition: width 1s ease; }
+.reward-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.reward-chip {
+  padding: 5px 13px; border-radius: 20px; font-size: 12px; font-weight: 600;
+  border: 1.5px solid;
+}
+.rc-done { background: var(--green-l); border-color: #86EFAC; color: var(--green); }
+.rc-next { background: white; border-color: var(--amber-m); color: var(--amber); }
+
+/* ══════════════════════ LOG VIEW ══════════════════════ */
+.log-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--white); border: 1.5px solid var(--border);
+  border-radius: var(--r); padding: 16px 22px; margin-bottom: 14px;
+  box-shadow: var(--card-shadow);
+}
+.log-nav-btn {
+  width: 40px; height: 40px; border-radius: 50%;
+  border: 1.5px solid var(--border); background: var(--bg);
+  font-size: 20px; cursor: pointer; color: var(--ink2);
+  display: flex; align-items: center; justify-content: center;
+  transition: all .18s;
+}
+.log-nav-btn:hover { border-color: var(--sky); color: var(--sky); background: var(--sky-l); }
+.log-date-main {
+  font-family: 'Prompt', sans-serif; font-size: 18px; font-weight: 700; text-align: center;
+}
+.log-date-sub { font-size: 13px; color: var(--ink3); text-align: center; margin-top: 2px; }
+
+.star-banner {
+  background: var(--amber-l); border: 1.5px solid var(--amber-m);
+  border-radius: var(--r-sm); padding: 11px 18px;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-bottom: 14px; font-size: 14px; color: var(--amber);
+}
+.star-banner b { color: #B45309; }
+
+.log-empty {
+  text-align: center; padding: 50px 20px; color: var(--ink3);
+}
+.log-empty-icon { font-size: 48px; margin-bottom: 14px; }
+
+/* Activity log cards */
+.alc {
+  background: var(--white); border: 1.5px solid var(--border);
+  border-radius: var(--r-sm); margin-bottom: 10px;
+  overflow: hidden; box-shadow: var(--card-shadow);
+  transition: border-color .18s;
+}
+.alc.done-card { border-color: #86EFAC; }
+.alc-head {
+  display: flex; align-items: center; gap: 11px;
+  padding: 14px 18px; cursor: pointer;
+}
+.alc-stripe { width: 4px; height: 38px; border-radius: 4px; flex-shrink: 0; }
+.alc-name { font-size: 15px; font-weight: 600; flex: 1; }
+.alc-cat {
+  font-size: 11px; padding: 3px 10px; border-radius: 20px;
+  border: 1.5px solid; flex-shrink: 0; font-weight: 600;
+}
+.star-hint { font-size: 12px; min-width: 60px; text-align: right; flex-shrink: 0; }
+.done-btn {
+  width: 38px; height: 38px; border-radius: 50%;
+  border: 1.5px solid var(--border); background: var(--bg);
+  font-size: 17px; cursor: pointer; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .18s; flex-shrink: 0; color: var(--ink3);
+}
+.done-btn.done { background: var(--green-l); border-color: #86EFAC; color: var(--green); }
+.done-btn.skip { background: var(--rose-l); border-color: #FCA5A5; color: var(--rose); }
+
+.alc-body {
+  display: none; padding: 4px 18px 16px;
+  border-top: 1px solid var(--border); background: var(--bg);
+}
+.alc-body.open { display: block; }
+.alc-fields { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; padding-top: 14px; margin-bottom: 12px; }
+.score-row { display: flex; gap: 6px; align-items: flex-end; }
+.score-sep { font-size: 16px; color: var(--ink3); padding-bottom: 10px; }
+.mood-row { display: flex; gap: 6px; }
+.mood-opt {
+  flex: 1; padding: 8px 2px; text-align: center;
+  background: var(--white); border: 1.5px solid var(--border);
+  border-radius: var(--r-xs); cursor: pointer; font-size: 20px;
+  transition: all .15s;
+}
+.mood-opt:hover { border-color: var(--sky); transform: scale(1.06); }
+.mood-opt.sel { border-color: var(--amber); background: var(--amber-l); transform: scale(1.1); }
+
+/* ══════════════════════ ACTIVITY EDITOR ══════════════════════ */
+.ae-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px; background: var(--bg);
+  border: 1.5px solid var(--border); border-radius: var(--r-xs);
+  margin-bottom: 8px;
+}
+.ae-row select, .ae-row input {
+  background: var(--white); border: 1.5px solid var(--border);
+  border-radius: var(--r-xs); color: var(--ink);
+  font-family: 'Sarabun', sans-serif; font-size: 14px;
+  padding: 7px 11px; outline: none; transition: border-color .18s;
+}
+.ae-row select:focus, .ae-row input:focus { border-color: var(--sky); }
+.ae-row select option { background: white; }
+.ae-cat { width: 130px; flex-shrink: 0; }
+.ae-name { flex: 1; }
+.ae-mins { width: 68px; text-align: center; }
+.del-btn {
+  width: 32px; height: 32px; border-radius: 50%; border: none;
+  background: var(--rose-l); color: var(--rose); cursor: pointer;
+  font-size: 18px; display: flex; align-items: center; justify-content: center;
+  transition: background .18s;
+}
+.del-btn:hover { background: #FCA5A5; }
+.add-btn {
+  width: 100%; padding: 12px; background: transparent;
+  border: 2px dashed var(--border2); border-radius: var(--r-xs);
+  font-family: 'Sarabun', sans-serif; font-size: 14px; color: var(--ink3);
+  cursor: pointer; transition: all .18s; margin-top: 4px;
+}
+.add-btn:hover { border-color: var(--sky); color: var(--sky); background: var(--sky-l); }
+
+/* ══════════════════════ WEEK THEMES ══════════════════════ */
+.wt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.wt-card {
+  background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: var(--r-sm); padding: 14px 16px;
+}
+.wt-card.current-week { border-color: var(--sky); background: var(--sky-l); }
+.wt-wk { font-family: 'Prompt', sans-serif; font-size: 12px; font-weight: 700; color: var(--sky); text-transform: uppercase; letter-spacing: 1px; }
+.wt-period { font-size: 12px; color: var(--ink3); margin: 3px 0 10px; }
+.wt-inp {
+  width: 100%; padding: 8px 12px;
+  background: var(--white); border: 1.5px solid var(--border);
+  border-radius: var(--r-xs); font-family: 'Sarabun', sans-serif;
+  font-size: 14px; font-weight: 600; color: var(--ink); outline: none;
+  transition: border-color .18s;
+}
+.wt-inp:focus { border-color: var(--sky); }
+.wt-card.current-week .wt-inp { border-color: var(--sky-m); }
+
+/* ══════════════════════ REPORT ══════════════════════ */
+.rpt-toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 18px; }
+.rpt-select {
+  padding: 9px 14px; background: var(--white);
+  border: 1.5px solid var(--border); border-radius: var(--r-xs);
+  font-family: 'Sarabun', sans-serif; font-size: 14px; color: var(--ink); outline: none;
+}
+.rpt-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.rtable { width: 100%; border-collapse: collapse; font-size: 14px; }
+.rtable th {
+  background: var(--sky-l); color: var(--sky-d);
+  font-size: 12px; text-transform: uppercase; letter-spacing: .5px;
+  padding: 11px 14px; text-align: left;
+  font-family: 'Prompt', sans-serif; font-weight: 600;
+  border-bottom: 2px solid var(--sky-m);
+}
+.rtable td { padding: 11px 14px; border-bottom: 1px solid var(--border); color: var(--ink2); font-size: 14px; }
+.rtable tr:last-child td { border-bottom: none; }
+.rtable tr:hover td { background: var(--bg); }
+
+/* ══════════════════════ STREAK CALENDAR ══════════════════════ */
+.streak-cell {
+  aspect-ratio: 1;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: transform .15s, box-shadow .15s;
+  position: relative;
+  border: 1px solid transparent;
+  min-width: 0;
+}
+.streak-cell:hover { transform: scale(1.4); z-index: 10; box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+.streak-cell.s-empty  { background: #F1F5F9; border-color: #E2E8F0; }
+.streak-cell.s-full   { background: #DCFCE7; border-color: #86EFAC; }
+.streak-cell.s-part   { background: #FEF3C7; border-color: #FDE68A; }
+.streak-cell.s-today  { border-color: var(--sky) !important; box-shadow: 0 0 0 2px rgba(59,130,246,.3); }
+.streak-cell.s-future { background: #F8FAFC; border-color: #F1F5F9; opacity: .3; cursor: default; }
+.streak-cell::after {
+  content: attr(data-tip);
+  position: absolute; bottom: calc(100% + 5px); left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink); color: white;
+  font-size: 11px; white-space: nowrap;
+  padding: 4px 8px; border-radius: 6px;
+  opacity: 0; pointer-events: none; transition: opacity .15s;
+  z-index: 50;
+}
+.streak-cell:hover::after { opacity: 1; }
+.streak-week-lbl {
+  font-size: 9px; color: var(--ink4); text-align: center;
+  font-weight: 600;
+}
+
+/* ══════════════════════ LIBRARY CHIPS ══════════════════════ */
+.lib-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 20px;
+  border: 1.5px solid var(--border2); background: var(--bg);
+  font-size: 14px; font-weight: 500; color: var(--ink2);
+  cursor: pointer; transition: all .18s;
+}
+.lib-chip:hover { border-color: var(--sky); color: var(--sky); background: var(--sky-l); transform: translateY(-1px); box-shadow: 0 2px 8px rgba(59,130,246,.15); }
+.lib-chip .chip-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.lib-chip.added { opacity: .4; cursor: default; pointer-events: none; }
+
+/* ══════════════════════ RESPONSIVE ══════════════════════ */
+@media (max-width: 960px) {
+  .g4 { grid-template-columns: 1fr 1fr; }
+  .g3, .skill-grid { grid-template-columns: 1fr 1fr; }
+  .rpt-charts { grid-template-columns: 1fr; }
+}
+@media (max-width: 700px) {
+  .topbar { padding: 0 16px; height: 60px; }
+  .content { padding: 16px; }
+  .g2, .g3, .g4, .skill-grid, .wt-grid, .rpt-charts { grid-template-columns: 1fr; }
+  .nav-btn .nav-txt { display: none; }
+  .nav-btn { padding: 8px 12px; }
+  .alc-fields { grid-template-columns: 1fr; }
+  .hero-days { display: none; }
+  .dash-hero { padding: 20px; }
+}
+@media print {
+  .topbar, .rpt-toolbar { display: none !important; }
+  body { background: white; }
+  .card { box-shadow: none; border: 1px solid #ddd; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="brand" onclick="openProfile()" title="คลิกเพื่อแก้ไขข้อมูล">
+    <div class="brand-avatar" id="brand-avatar">☀️</div>
+    <div>
+      <div class="brand-name" id="brand-name">ตะวัน</div>
+      <div class="brand-sub" id="brand-sub">5 ขวบ | อนุบาล 3</div>
+      <div class="brand-edit-hint">✏️ แก้ไขข้อมูล</div>
+    </div>
+  </div>
+  <nav class="nav">
+    <button class="nav-btn active" onclick="showView('dashboard',this)">🏠 <span class="nav-txt">ภาพรวม</span></button>
+    <button class="nav-btn" onclick="showView('log',this)">📝 <span class="nav-txt">บันทึกวันนี้</span></button>
+    <button class="nav-btn" onclick="showView('activities',this)">⚙️ <span class="nav-txt">กิจกรรม</span></button>
+    <button class="nav-btn" onclick="showView('themes',this)">🌌 <span class="nav-txt">ธีมสัปดาห์</span></button>
+    <button class="nav-btn" onclick="showView('report',this)">📊 <span class="nav-txt">รีพอร์ต</span></button>
+  </nav>
+</header>
+
+<div class="content">
+
+<!-- ════════════ DASHBOARD ════════════ -->
+<div id="view-dashboard" class="view active">
+  <div class="dash-hero mb">
+    <div class="hero-name" id="h-name">ตะวัน</div>
+    <div class="hero-sub" id="h-sub">5 ขวบ | อนุบาล 3 · ปิดเทอม 3 เดือน</div>
+    <div class="hero-tags">
+      <span class="hero-tag" id="h-week">สัปดาห์ที่ —</span>
+      <span class="hero-tag" id="h-theme">— ธีม</span>
+      <span class="hero-tag" id="h-range">7 มี.ค. – 4 มิ.ย. 68</span>
+    </div>
+    <div class="hero-days">
+      <div class="hero-days-num" id="h-days">—</div>
+      <div class="hero-days-lbl">วันที่เหลือ</div>
+    </div>
+  </div>
+
+  <div class="g4 mb">
+    <div class="kpi" style="--accent:var(--sky)">
+      <span class="kpi-icon">🎯</span>
+      <div class="kpi-val" id="kpi-cons">0%</div>
+      <div class="kpi-label" id="kpi-cons-lbl">ความสม่ำเสมอ</div>
+    </div>
+    <div class="kpi" style="--accent:var(--green)">
+      <span class="kpi-icon">✅</span>
+      <div class="kpi-val" id="kpi-done">0</div>
+      <div class="kpi-label" id="kpi-done-lbl">กิจกรรมสำเร็จ</div>
+    </div>
+    <div class="kpi" style="--accent:var(--amber)">
+      <span class="kpi-icon">😊</span>
+      <div class="kpi-val" id="kpi-mood">—</div>
+      <div class="kpi-label" id="kpi-mood-lbl">Mood เฉลี่ย</div>
+    </div>
+    <div class="kpi" style="--accent:var(--purple)">
+      <span class="kpi-icon">⭐</span>
+      <div class="kpi-val" id="kpi-stars">0</div>
+      <div class="kpi-label" id="kpi-stars-lbl">ดาวสะสม</div>
+    </div>
+  </div>
+
+  <div class="star-section mb">
+    <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+      <div>
+        <div class="star-big" id="star-big">0</div>
+        <div style="font-size:13px;color:var(--amber);margin-top:2px;">/ 50 ดาว = รางวัลใหญ่! 🏆 · <span id="star-range-lbl" style="font-size:11px;opacity:.8">ภาพรวม</span></div>
+      </div>
+      <div style="flex:1;min-width:180px;">
+        <div class="star-track"><div class="star-fill" id="star-fill" style="width:0%"></div></div>
+        <div class="reward-chips" id="reward-chips" style="margin-top:10px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="g2 mb">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:10px;">
+        🕸️ Balance 5 ด้าน
+        <select id="radar-range" onchange="renderRadar();renderCatBars();renderKPI();" style="margin-left:auto;padding:4px 10px;border:1.5px solid var(--border);border-radius:20px;font-family:'Sarabun',sans-serif;font-size:12px;color:var(--ink2);background:var(--bg);cursor:pointer;outline:none;">
+          <option value="today">วันนี้</option>
+          <option value="week">สัปดาห์นี้</option>
+          <option value="month">เดือนนี้</option>
+          <option value="all">ภาพรวม 90 วัน</option>
+        </select>
+      </div>
+      <div style="font-size:11px;color:var(--ink4);text-align:center;margin-bottom:6px;" id="radar-lbl">สัดส่วนเวลา (%) · ภาพรวม 90 วัน</div>
+      <div style="display:flex;justify-content:center;">
+        <canvas id="radarChart" width="260" height="260"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">⏱️ สัดส่วนเวลาแต่ละด้าน</div>
+      <div id="cat-bars"></div>
+      <div class="sep" style="margin:16px 0 12px;"></div>
+      <!-- Streak calendar header -->
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+        <span style="font-size:13px;font-weight:700;color:var(--ink2);">🔥 Streak</span>
+        <button onclick="changeStreakMonth(-1)" style="border:none;background:none;cursor:pointer;font-size:16px;color:var(--ink3);padding:0 4px;line-height:1;">‹</button>
+        <span style="font-size:12px;color:var(--ink2);font-weight:600;min-width:70px;text-align:center;" id="streak-month-lbl">—</span>
+        <button onclick="changeStreakMonth(1)" style="border:none;background:none;cursor:pointer;font-size:16px;color:var(--ink3);padding:0 4px;line-height:1;">›</button>
+      </div>
+      <!-- Calendar grid -->
+      <div id="streak-cal"></div>
+      <!-- Legend -->
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;">
+        <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink3);">
+          <span style="width:14px;height:14px;border-radius:50%;background:#22C55E;display:inline-block;"></span>ทำครบทุกกิจกรรม
+        </span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink3);">
+          <span style="width:14px;height:14px;border-radius:50%;background:#F59E0B;display:inline-block;"></span>ทำบางส่วน
+        </span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink3);">
+          <span style="width:14px;height:14px;border-radius:50%;background:#E2E8F0;border:1px solid #CBD5E1;display:inline-block;"></span>ยังไม่บันทึก
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb">
+    <div class="card-title">🌌 ธีมการเรียนรู้รายสัปดาห์</div>
+    <div class="themes-scroll" id="dash-themes"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📚 ทักษะที่ควรพัฒนาในวัยนี้ <span style="font-size:12px;font-weight:400;color:var(--ink3);">(Cambridge Early Years + WHO)</span></div>
+    <div class="skill-grid" id="skill-recs"></div>
+  </div>
+
+  <!-- Debug panel — shows current week calc -->
+  <div id="debug-panel" style="margin-top:12px;padding:12px 16px;background:var(--bg2);border-radius:var(--r-sm);border:1px dashed var(--border2);font-size:12px;color:var(--ink3);display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+    <span>🔧 ตรวจสอบ: วันนี้ = <b id="dbg-today">—</b> · คำนวณได้สัปดาห์ <b id="dbg-wk">—</b> · ธีม = <b id="dbg-theme">—</b></span>
+    <button onclick="forceResetCache()" style="padding:4px 12px;border-radius:20px;border:1px solid var(--border2);background:white;cursor:pointer;font-size:12px;color:var(--ink2);">🗑️ Reset Cache แล้วโหลดใหม่</button>
+  </div>
+</div>
+
+<!-- ════════════ LOG ════════════ -->
+<div id="view-log" class="view">
+  <!-- Date nav -->
+  <div class="log-nav">
+    <button class="log-nav-btn" onclick="changeDate(-1)">‹</button>
+    <div>
+      <div class="log-date-main" id="log-date-main">—</div>
+      <div class="log-date-sub" id="log-date-sub"></div>
+    </div>
+    <div id="log-theme-pill" style="display:none" class="tag tag-amber"></div>
+    <button class="log-nav-btn" onclick="changeDate(1)">›</button>
+  </div>
+
+  <!-- Star banner -->
+  <div class="star-banner">
+    <span style="font-size:18px">⭐</span>
+    <span style="flex:1">ทำครบ = <b>+1 ดาว</b> · Mood 😄🤩 ทุกอัน = <b>+1 ดาว</b> · 7 วันติด = <b>+5 ดาว</b></span>
+    <span style="font-weight:700;font-size:14px;" id="star-counter">0/0 ✅</span>
+  </div>
+
+  <!-- Add from library -->
+  <div class="card mb" id="lib-panel">
+    <div class="card-title" style="margin-bottom:12px;">➕ เพิ่มกิจกรรมวันนี้จาก Library</div>
+    <div id="lib-no-acts" style="display:none;font-size:14px;color:var(--ink3);padding:8px 0;">
+      ยังไม่มีกิจกรรมใน Library — ไปเพิ่มที่ <b>⚙️ กิจกรรม</b> ก่อนนะครับ
+    </div>
+    <div id="lib-chips" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+  </div>
+
+  <!-- Today's log list -->
+  <div id="log-list"></div>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px;flex-wrap:wrap;gap:10px;">
+    <span style="font-size:13px;color:var(--ink3);">กดปุ่มกิจกรรมด้านบนเพื่อเพิ่ม · กด × เพื่อลบออกจากวันนี้</span>
+    <button class="btn btn-primary" onclick="saveDay()">💾 บันทึกวันนี้</button>
+  </div>
+</div>
+
+<!-- ════════════ ACTIVITIES EDITOR ════════════ -->
+<div id="view-activities" class="view">
+  <div class="card">
+    <div class="card-title">⚙️ จัดการรายการกิจกรรม</div>
+    <div id="ae-list"></div>
+    <button class="add-btn" onclick="addAct()">＋ เพิ่มกิจกรรมใหม่</button>
+    <div class="sep"></div>
+    <div style="display:flex;justify-content:flex-end;">
+      <button class="btn btn-primary" onclick="saveActs()">💾 บันทึกกิจกรรม</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ WEEK THEMES ════════════ -->
+<div id="view-themes" class="view">
+  <div class="card">
+    <div class="card-title">🌌 ธีมประจำแต่ละสัปดาห์</div>
+    <p style="font-size:14px;color:var(--ink3);margin-bottom:18px;">แก้ไขธีมได้เลย — จะอัปเดตที่ภาพรวม, หน้าบันทึก และรีพอร์ตทันที</p>
+    <div class="wt-grid" id="wt-grid"></div>
+    <div class="sep"></div>
+    <div style="display:flex;justify-content:flex-end;">
+      <button class="btn btn-primary" onclick="saveThemes()">💾 บันทึกธีม</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ REPORT ════════════ -->
+<div id="view-report" class="view">
+  <div class="rpt-toolbar">
+    <select class="rpt-select" id="rpt-range" onchange="renderReport()">
+      <option value="all">ภาพรวม 3 เดือน</option>
+    </select>
+    <button class="btn btn-ghost" onclick="window.print()">🖨️ พิมพ์/PDF</button>
+  </div>
+  <div id="rpt-content"></div>
+</div>
+
+</div><!-- /content -->
+
+<!-- PROFILE MODAL -->
+<div class="overlay" id="profile-modal">
+  <div class="modal-box">
+    <div class="modal-title">✏️ แก้ไขข้อมูลเด็ก</div>
+    <div style="margin-bottom:14px;">
+      <label class="lbl">ชื่อเด็ก</label>
+      <input class="inp" id="p-name" placeholder="เช่น ตะวัน">
+    </div>
+    <div style="margin-bottom:14px;">
+      <label class="lbl">อายุ / ระดับชั้น</label>
+      <input class="inp" id="p-grade" placeholder="เช่น 5 ขวบ | อนุบาล 3">
+    </div>
+    <div style="margin-bottom:20px;">
+      <label class="lbl">วันเริ่มปิดเทอม</label>
+      <input class="inp" id="p-start" type="date">
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="closeProfile()">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveProfile()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- 🔧 localStorage migration — runs before any app code -->
+<script>
+(function(){
+  // Force-clear stale themes that lack start/end fields
+  try {
+    var raw = localStorage.getItem('lt4_themes');
+    if (raw) {
+      var arr = JSON.parse(raw);
+      // If any theme object is missing 'start', the cache is stale → nuke it
+      if (!arr[0] || !arr[0].start) {
+        localStorage.removeItem('lt4_themes');
+        localStorage.removeItem('lt4_ver');
+        console.log('[migrate] Cleared stale lt4_themes');
+      }
+    }
+    // Also clear acts if they're still the DEFAULT 10 items
+    // Never touch lt4_acts — it's the user's library, must persist always
+  } catch(e) { console.warn('[migrate] error:', e); }
+})();
+</script>
+
+<script>
+// ════════════════════════════════════════════════════
+// CONSTANTS
+// ════════════════════════════════════════════════════
+const CATS = ['วิชาการ','กีฬา','ศิลปะ/ดนตรี','ทักษะชีวิต','วิทยาศาสตร์'];
+const CAT_CLR = ['#16A34A','#EA580C','#7C3AED','#D97706','#0D9488'];
+const CAT_LIGHT = ['#DCFCE7','#FFEDD5','#EDE9FE','#FEF3C7','#CCFBF1'];
+const CAT_DARK  = ['#15803D','#C2410C','#6D28D9','#B45309','#0F766E'];
+const MOOD_EMOJI = ['','😢','😐','🙂','😄','🤩'];
+const DAY_TH = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์'];
+const MON_TH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const REWARDS = [{s:5,l:'🌱 เริ่มต้น'},{s:15,l:'🌿 กำลังดี'},{s:25,l:'🌸 ดาวรุ่ง'},{s:40,l:'⭐ ซุปเปอร์'},{s:50,l:'🏆 แชมป์!'}];
+const DEFAULT_ACTS = [
+  {cat:'วิชาการ',name:'อ่านหนังสือนิทาน',mins:20},
+  {cat:'วิชาการ',name:'ฝึกเขียน ก-ฮ / ABC',mins:20},
+  {cat:'วิชาการ',name:'เล่นเกมตัวเลข 1–20',mins:15},
+  {cat:'กีฬา',name:'วิ่งเล่น/กระโดด/ปีนป่าย',mins:30},
+  {cat:'กีฬา',name:'ว่ายน้ำ',mins:45},
+  {cat:'ศิลปะ/ดนตรี',name:'วาดภาพ/ระบายสี',mins:25},
+  {cat:'ศิลปะ/ดนตรี',name:'ร้องเพลง/เต้น',mins:20},
+  {cat:'ทักษะชีวิต',name:'ช่วยงานบ้าน',mins:15},
+  {cat:'ทักษะชีวิต',name:'จัดของเล่นเอง',mins:10},
+  {cat:'วิทยาศาสตร์',name:'สังเกตธรรมชาติ/ทดลองง่ายๆ',mins:25},
+];
+// Themes: period dates are ABSOLUTE (not relative to startDate)
+const DEFAULT_THEMES = [
+  {week:1, start:'2026-03-09', end:'2026-03-15', period:'9-15 Mar', theme:'Space Adventure'},
+  {week:2, start:'2026-03-16', end:'2026-03-22', period:'16-22 Mar', theme:'Le Petit Chef'},
+  {week:3, start:'2026-03-23', end:'2026-03-29', period:'23-29 Mar', theme:'Little Scientist'},
+  {week:4, start:'2026-03-30', end:'2026-04-05', period:'30 Mar-5 Apr', theme:'Master Builder'},
+  {week:5, start:'2026-04-06', end:'2026-04-12', period:'6-12 Apr', theme:'Water World'},
+  {week:6, start:'2026-04-13', end:'2026-04-19', period:'13-19 Apr', theme:'Jungle Explorer'},
+  {week:7, start:'2026-04-20', end:'2026-04-26', period:'20-26 Apr', theme:'Under the Sea'},
+  {week:8, start:'2026-04-27', end:'2026-05-03', period:'27 Apr-3 May', theme:'The Lost Cities'},
+  {week:9, start:'2026-05-04', end:'2026-05-10', period:'4-10 May', theme:'My Little Wing'},
+  {week:10,start:'2026-05-11', end:'2026-05-17', period:'11-17 May', theme:'Mysteries of Anatomy'},
+  {week:11,start:'2026-05-18', end:'2026-05-24', period:'18-24 May', theme:'The Engineering'},
+];
+const SKILL_RECS = [
+  {ac:'var(--sky)',  area:'ภาษา & การสื่อสาร', text:'ฟัง พูด อ่านพยัญชนะ เล่าเรื่อง ใช้คำศัพท์ใหม่ทุกวัน', src:'Cambridge Early Years: Language & Literacy'},
+  {ac:'var(--green)',area:'คณิตศาสตร์พื้นฐาน', text:'นับ 1–20 เข้าใจมากกว่า/น้อยกว่า จัดกลุ่ม รูปทรง', src:'Cambridge EY: Mathematics'},
+  {ac:'var(--teal)', area:'ความเข้าใจโลก', text:'ทดลองง่ายๆ ตั้งคำถาม สังเกตธรรมชาติ เชื่อมเหตุ-ผล', src:'Cambridge EY: Understanding the World'},
+  {ac:'var(--purple)',area:'สังคม & อารมณ์', text:'แสดงความรู้สึก แบ่งปัน รอคอย ร่วมมือกับผู้อื่น', src:'Cambridge EY: PSED'},
+  {ac:'var(--orange)',area:'ศิลปะ & ความคิดสร้างสรรค์', text:'วาดรูป ปั้น บทบาทสมมติ ร้องเพลง เต้น', src:'Cambridge EY: Creative Arts'},
+  {ac:'var(--amber)', area:'พัฒนาการร่างกาย', text:'กล้ามเนื้อใหญ่-เล็ก ทรงตัว จับดินสอ ออกกำลังกายรายวัน', src:'WHO Guidelines + Cambridge EY: Physical'},
+];
+
+// ════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════
+let profile  = JSON.parse(localStorage.getItem('lt4_profile')  || 'null') || {name:'ตะวัน', grade:'5 ขวบ | อนุบาล 3', startDate:'2025-03-07'};
+// acts starts EMPTY so no default activities appear
+let acts     = JSON.parse(localStorage.getItem('lt4_acts')     || '[]');
+let logs     = JSON.parse(localStorage.getItem('lt4_logs')     || '{}');
+// Always merge stored themes with DEFAULT_THEMES to ensure start/end fields exist
+// Merge stored themes with DEFAULT so start/end always correct
+let themes = DEFAULT_THEMES.map(def => {
+  const _st = JSON.parse(localStorage.getItem('lt4_themes') || 'null');
+  const found = _st && _st.find(t => t.week === def.week);
+  return found ? {...def, theme: found.theme} : {...def};
+});
+let logDate  = new Date();
+let _ld      = [];           // current log day data
+let radarInst = null;
+let rptCharts = [];
+
+function persist() {
+  localStorage.setItem('lt4_profile', JSON.stringify(profile));
+  localStorage.setItem('lt4_acts',    JSON.stringify(acts));
+  localStorage.setItem('lt4_logs',    JSON.stringify(logs));
+  localStorage.setItem('lt4_themes',  JSON.stringify(themes));
+}
+
+// ════════════════════════════════════════════════════
+// DATE HELPERS — NO BUDDHIST YEAR BUG
+// ════════════════════════════════════════════════════
+const dkey = d => d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const pad  = n => String(n).padStart(2,'0');
+// Show CE year always — no +543
+const dateTH = d => `${d.getDate()} ${MON_TH[d.getMonth()]} ${d.getFullYear()}`;
+const dateTHShort = d => `${d.getDate()} ${MON_TH[d.getMonth()]}`;
+
+function startDate() {
+  const [y,m,d] = profile.startDate.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+function endDate() {
+  const sd = startDate();
+  const ed = new Date(sd);
+  ed.setDate(ed.getDate() + 89);
+  return ed;
+}
+
+// Use YYYY-MM-DD string compare — simple, no timezone issues
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+}
+function dateStr(d) {
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+}
+function currentWeekNum() {
+  const today = todayStr();
+  for(const t of themes) {
+    if(today >= t.start && today <= t.end) return t.week;
+  }
+  if(today < themes[0].start) return 1;
+  if(today > themes[themes.length-1].end) return themes[themes.length-1].week;
+  return 1;
+}
+function themeForDate(d) {
+  const ds = dateStr(d);
+  for(const t of themes) {
+    if(ds >= t.start && ds <= t.end) return t.theme;
+  }
+  return null;
+}
+
+function catIdx(cat) { return CATS.indexOf(cat); }
+function catClr(cat) { return CAT_CLR[catIdx(cat)] || CAT_CLR[0]; }
+
+// ════════════════════════════════════════════════════
+// STATS
+// ════════════════════════════════════════════════════
+function computeStats(dayKeys) {
+  let tDone=0, tPoss=0, mSum=0, mCnt=0, stars=0;
+  let catDone={}, catTotal={}, catMSum={}, catMCnt={};
+  CATS.forEach(c=>{catDone[c]=0;catTotal[c]=0;catMSum[c]=0;catMCnt[c]=0;});
+
+  const daysWithData=[];
+  const keys = dayKeys || Object.keys(logs);
+  keys.forEach(k=>{
+    const day=logs[k]; if(!day) return;
+    daysWithData.push(k);
+    let allDone=true, allHighMood=true;
+    day.forEach(e=>{
+      tPoss++;
+      catTotal[e.cat]=(catTotal[e.cat]||0)+1;
+      if(e.done){
+        tDone++;
+        catDone[e.cat]=(catDone[e.cat]||0)+1;
+        if(e.mood>0){mSum+=e.mood;mCnt++;catMSum[e.cat]=(catMSum[e.cat]||0)+e.mood;catMCnt[e.cat]=(catMCnt[e.cat]||0)+1;}
+        if(e.mood<4) allHighMood=false;
+      } else { allDone=false; allHighMood=false; }
+    });
+    if(allDone) stars++;
+    if(allDone && allHighMood) stars++;
+  });
+  // Streak bonus
+  const sorted = [...daysWithData].sort();
+  let streak=0;
+  for(let i=0;i<sorted.length;i++){
+    const allDone=logs[sorted[i]]?.every(e=>e.done);
+    if(allDone){ streak++;
+      if(streak>0 && streak%7===0) stars+=5;
+    } else streak=0;
+  }
+  const catAvg={}, catPct={};
+  CATS.forEach(c=>{
+    catAvg[c] = catMCnt[c]>0 ? catMSum[c]/catMCnt[c] : 0;
+    catPct[c] = catTotal[c]>0 ? Math.round(catDone[c]/catTotal[c]*100) : 0;
+  });
+  return {
+    cons: tPoss>0?Math.round(tDone/tPoss*100):0,
+    days: daysWithData.length, tDone, tPoss,
+    avgMood: mCnt>0?(mSum/mCnt).toFixed(1):null,
+    stars: Math.min(stars,999), catAvg, catPct, catDone, catTotal
+  };
+}
+
+function parseScore(v) {
+  if(v===''||v==null) return null;
+  const s=String(v);
+  if(s.includes('/')){const[a,b]=s.split('/').map(Number);return b>0?Math.round(a/b*10):null;}
+  const n=Number(s); return isNaN(n)?null:n;
+}
+
+// ════════════════════════════════════════════════════
+// VIEW
+// ════════════════════════════════════════════════════
+function showView(name, btn) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  if(btn) btn.classList.add('active');
+  ({dashboard:renderDash, log:renderLog, activities:renderActs,
+    themes:renderThemeEditor, report:()=>{buildRptOpts();renderReport();}})[name]?.();
+}
+
+// ════════════════════════════════════════════════════
+// PROFILE
+// ════════════════════════════════════════════════════
+function openProfile() {
+  document.getElementById('p-name').value  = profile.name;
+  document.getElementById('p-grade').value = profile.grade;
+  document.getElementById('p-start').value = profile.startDate;
+  document.getElementById('profile-modal').classList.add('open');
+}
+function closeProfile() { document.getElementById('profile-modal').classList.remove('open'); }
+function saveProfile() {
+  profile.name      = document.getElementById('p-name').value.trim()  || profile.name;
+  profile.grade     = document.getElementById('p-grade').value.trim() || profile.grade;
+  profile.startDate = document.getElementById('p-start').value        || profile.startDate;
+  persist(); closeProfile(); updateBrand(); toast('✅ บันทึกข้อมูลแล้ว'); renderDash();
+}
+function updateBrand() {
+  document.getElementById('brand-name').textContent = profile.name;
+  document.getElementById('brand-sub').textContent  = profile.grade;
+}
+
+function forceResetCache() {
+  ['lt4_themes','lt4_ver'].forEach(k => localStorage.removeItem(k)); // never wipe lt4_acts
+  location.reload();
+}
+
+function updateDebugPanel() {
+  const t = todayStr();
+  const wk = currentWeekNum();
+  const th = themes.find(x=>x.week===wk);
+  const el = document.getElementById('dbg-today');
+  if(el) el.textContent = t;
+  const ew = document.getElementById('dbg-wk');
+  if(ew) ew.textContent = wk;
+  const et = document.getElementById('dbg-theme');
+  if(et) et.textContent = th ? th.theme : '(ไม่มีธีม)';
+}
+
+// ════════════════════════════════════════════════════
+// DASHBOARD
+// ════════════════════════════════════════════════════
+let streakMonth = 0;
+
+function changeStreakMonth(d) {
+  streakMonth = Math.max(-2, Math.min(2, streakMonth + d));
+  renderStreakCalendar();
+}
+
+function renderStreakCalendar() {
+  const sd     = startDate();
+  const today  = todayStr();
+  const now    = new Date();
+  const DOW    = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+
+  // Which month
+  const firstOfMonth = new Date(now.getFullYear(), now.getMonth() + streakMonth, 1);
+  const daysInMonth  = new Date(now.getFullYear(), now.getMonth() + streakMonth + 1, 0).getDate();
+  const yr  = firstOfMonth.getFullYear();
+  const mo  = firstOfMonth.getMonth();
+
+  const lbl = document.getElementById('streak-month-lbl');
+  if(lbl) lbl.textContent = MON_TH[mo] + ' ' + yr;
+
+  // Color scheme matching the screenshot style
+  const BG   = { g:'#4ADE80', y:'#FCD34D', r:'#FCA5A5', e:'rgba(255,255,255,0.25)', f:'rgba(255,255,255,0.08)' };
+  const TEXT = { g:'#14532D', y:'#78350F', r:'#7F1D1D', e:'rgba(255,255,255,0.5)',  f:'rgba(255,255,255,0.2)' };
+  const RING = { g:'none', y:'none', r:'none', e:'none', f:'none' };
+
+  // Header row
+  const header = DOW.map(d =>
+    `<div style="text-align:center;font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);padding:4px 0;letter-spacing:.5px;">${d}</div>`
+  ).join('');
+
+  // Blank cells before first day of month
+  const startDow = new Date(yr, mo, 1).getDay();
+  let cells = '';
+
+  // Prev month days (greyed)
+  const prevMonthDays = new Date(yr, mo, 0).getDate();
+  for(let i = startDow - 1; i >= 0; i--) {
+    const day = prevMonthDays - i;
+    cells += `<div style="display:flex;align-items:center;justify-content:center;">
+      <div style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:12px;color:rgba(255,255,255,0.2);font-family:'Prompt',sans-serif;">${day}</span>
+      </div></div>`;
+  }
+
+  // This month's days
+  for(let d = 1; d <= daysInMonth; d++) {
+    const dt  = new Date(yr, mo, d);
+    const k   = dkey(dt);
+    const isToday   = k === today;
+    const isFuture  = k > today;
+    const diffDays  = Math.floor((dt - sd) / 86400000);
+    const inRange   = diffDays >= 0 && diffDays < 90;
+    const dayLog    = logs[k];
+
+    let status = 'f';
+    if(inRange) {
+      if(isFuture) { status = 'f'; }
+      else if(!dayLog || dayLog.length === 0) { status = 'e'; }
+      else {
+        const done  = dayLog.filter(e => e.done === true).length;
+        const total = dayLog.length;
+        status = done === total ? 'g' : done > 0 ? 'y' : 'r';
+      }
+    } else if(!inRange && !isFuture) {
+      status = 'f'; // outside 90-day range
+    }
+
+    const done2  = dayLog ? dayLog.filter(e=>e.done===true).length : 0;
+    const total2 = dayLog ? dayLog.length : 0;
+    const tip    = `${d} ${MON_TH[mo]}${total2>0?' · '+done2+'/'+total2+' กิจกรรม':''}`;
+    const clickable = inRange && !isFuture;
+
+    // Today gets white circle with blue text
+    const todayStyle = isToday
+      ? `background:white;box-shadow:0 2px 8px rgba(0,0,0,0.2);`
+      : `background:${BG[status]};`;
+    const textStyle = isToday
+      ? `color:#3B82F6;font-weight:800;`
+      : `color:${TEXT[status]};font-weight:${status==='e'||status==='f'?'400':'700'};`;
+
+    cells += `<div style="display:flex;align-items:center;justify-content:center;padding:3px 0;">
+      <div style="width:32px;height:32px;border-radius:50%;${todayStyle}display:flex;align-items:center;justify-content:center;cursor:${clickable?'pointer':'default'};transition:transform .12s;flex-shrink:0;"
+        title="${tip}"
+        onmouseenter="if(${clickable})this.style.transform='scale(1.12)'"
+        onmouseleave="this.style.transform='scale(1)'"
+        onclick="${clickable?`goToDate('${k}')`:''}">
+        <span style="font-size:12px;font-family:'Prompt',sans-serif;${textStyle}">${d}</span>
+      </div></div>`;
+  }
+
+  // Fill remaining cells with next month
+  const totalCells = startDow + daysInMonth;
+  const remaining  = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+  for(let d = 1; d <= remaining; d++) {
+    cells += `<div style="display:flex;align-items:center;justify-content:center;">
+      <div style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:12px;color:rgba(255,255,255,0.2);font-family:'Prompt',sans-serif;">${d}</span>
+      </div></div>`;
+  }
+
+  const calEl = document.getElementById('streak-cal');
+  calEl.innerHTML = `
+    <div style="background:linear-gradient(135deg,#3B82F6,#6366F1);border-radius:14px;padding:14px 12px;">
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;">
+        ${header}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;">
+        ${cells}
+      </div>
+    </div>`;
+}
+
+function goToDate(dateKey) {
+  // Navigate to log view on that date
+  const [y,m,d] = dateKey.split('-').map(Number);
+  logDate = new Date(y, m-1, d);
+  const logBtn = document.querySelector('.nav-btn:nth-child(2)');
+  showView('log', logBtn);
+}
+
+function renderKPI() {
+  const days = getRadarDays();
+  const st   = computeStats(days);
+
+  // Update KPI label to show range
+  const sel   = document.getElementById('radar-range');
+  const range = sel ? sel.value : 'all';
+  const rangeLabel = {all:'90 วัน', today:'วันนี้', week:'สัปดาห์นี้', month:'เดือนนี้'}[range]||'';
+
+  // Update KPI labels dynamically
+  const kpiLabels = {
+    'kpi-cons-lbl': 'ความสม่ำเสมอ · '+rangeLabel,
+    'kpi-done-lbl': 'กิจกรรมสำเร็จ · '+rangeLabel,
+    'kpi-mood-lbl': 'Mood เฉลี่ย · '+rangeLabel,
+    'kpi-stars-lbl':'ดาวสะสม · '+rangeLabel,
+  };
+  Object.entries(kpiLabels).forEach(([id, txt]) => {
+    const el = document.getElementById(id);
+    if(el) el.textContent = txt;
+  });
+
+  document.getElementById('kpi-cons').textContent  = st.cons+'%';
+  document.getElementById('kpi-done').textContent  = st.tDone;
+  document.getElementById('kpi-mood').textContent  = st.avgMood || '—';
+  document.getElementById('kpi-stars').textContent = st.stars;
+
+  document.getElementById('star-big').textContent  = st.stars;
+  document.getElementById('star-fill').style.width = Math.min(100,st.stars/50*100)+'%';
+  const starRangeEl = document.getElementById('star-range-lbl');
+  if(starRangeEl) starRangeEl.textContent = rangeLabel;
+  document.getElementById('reward-chips').innerHTML = REWARDS.map(r=>{
+    const done=st.stars>=r.s;
+    return `<span class="reward-chip ${done?'rc-done':'rc-next'}">${r.l}${done?' ✓':' '+r.s+'⭐'}</span>`;
+  }).join('');
+}
+
+function renderCatBars() {
+  const days = getRadarDays();
+  const catMins = computeCatMins(days);
+  const total = Object.values(catMins).reduce((a,b)=>a+b, 0);
+
+  document.getElementById('cat-bars').innerHTML = CATS.map((c,i) => {
+    const mins = catMins[c] || 0;
+    const pct  = total > 0 ? Math.round(mins / total * 100) : 0;
+    return `<div class="cat-row">
+      <div class="cat-row-head">
+        <span style="color:${CAT_CLR[i]};font-weight:600">${c}</span>
+        <span style="color:var(--ink3);font-size:13px">${mins} นาที · ${pct}%</span>
+      </div>
+      <div class="mbar"><div class="mfill" style="width:${pct}%;background:${CAT_CLR[i]}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderDash() {
+  updateBrand();
+  const st = computeStats();
+  const wk = currentWeekNum();
+  const cur = themes.find(t=>t.week===wk);
+  const sd = startDate(), ed = endDate();
+  const dLeft = Math.max(0, Math.ceil((ed-new Date())/86400000));
+
+  document.getElementById('h-name').textContent  = `สวัสดี ${profile.name}! 🌟`;
+  document.getElementById('h-sub').textContent   = `${profile.grade} · ปิดเทอม 3 เดือน`;
+  document.getElementById('h-week').textContent  = `สัปดาห์ที่ ${wk}`;
+  document.getElementById('h-theme').textContent = cur ? `🌌 ${cur.theme}` : 'ยังไม่มีธีม';
+  const now = new Date();
+  document.getElementById('h-range').textContent = `${dateTHShort(sd)} – ${dateTHShort(ed)} ${now.getFullYear()}`;
+  document.getElementById('h-days').textContent  = dLeft;
+
+  // Radar + KPI + Bars (all sync with dropdown)
+  renderRadar();
+  renderCatBars();
+  renderKPI();
+
+  // Themes row
+  document.getElementById('dash-themes').innerHTML = themes.map(t=>{
+    const _td = todayStr();
+    const isNow = _td>=t.start && _td<=t.end;
+    const isPast = _td>t.end;
+    return `<div class="theme-pill ${isNow?'now':''} ${isPast?'past':''}" onclick="showView('themes',null)">
+      <span style="font-size:11px;opacity:.7">ส.${t.week}</span> ${t.theme}
+    </div>`;
+  }).join('');
+
+  // Skill recs
+  document.getElementById('skill-recs').innerHTML = SKILL_RECS.map(r=>`
+    <div class="skill-item" style="--ac:${r.ac}">
+      <div class="skill-area" style="color:${r.ac}">${r.area}</div>
+      <div class="skill-text">${r.text}</div>
+      <div class="skill-src">📚 ${r.src}</div>
+    </div>`).join('');
+  updateDebugPanel();
+  renderStreakCalendar();
+}
+
+function getRadarDays() {
+  const sel = document.getElementById('radar-range');
+  const range = sel ? sel.value : 'all';
+  const sd = startDate();
+  const now = new Date();
+  const today = todayStr();
+
+  if(range === 'today') return [today];
+  if(range === 'week') {
+    const dow = now.getDay();
+    const mon = new Date(now); mon.setDate(now.getDate() - (dow===0?6:dow-1));
+    const days=[];
+    for(let i=0;i<7;i++){const d=new Date(mon);d.setDate(mon.getDate()+i);days.push(dkey(d));}
+    return days;
+  }
+  if(range === 'month') {
+    const y=now.getFullYear(), m=now.getMonth();
+    const dim=new Date(y,m+1,0).getDate(), days=[];
+    for(let d=1;d<=dim;d++) days.push(`${y}-${pad(m+1)}-${pad(d)}`);
+    return days;
+  }
+  const days=[];
+  for(let i=0;i<90;i++){const dt=new Date(sd.getFullYear(),sd.getMonth(),sd.getDate()+i);days.push(dkey(dt));}
+  return days;
+}
+
+// Compute total minutes per category from selected days
+function computeCatMins(dayKeys) {
+  const catMins = {};
+  CATS.forEach(c => catMins[c] = 0);
+  dayKeys.forEach(k => {
+    const day = logs[k]; if(!day) return;
+    day.forEach(e => {
+      if(e.done === true) {
+        const mins = Number(e.actualMins) || e.mins || 0;
+        catMins[e.cat] = (catMins[e.cat]||0) + mins;
+      }
+    });
+  });
+  return catMins;
+}
+
+function renderRadar() {
+  const sel = document.getElementById('radar-range');
+  const range = sel ? sel.value : 'all';
+  const lbl = document.getElementById('radar-lbl');
+  const days = getRadarDays();
+  const catMins = computeCatMins(days);
+  const total = Object.values(catMins).reduce((a,b)=>a+b, 0);
+
+  // Convert to % of total time
+  const data = CATS.map(c => total > 0 ? Math.round(catMins[c]/total*100) : 0);
+
+  const rangeLabel = {all:'ภาพรวม 90 วัน', today:'วันนี้', week:'สัปดาห์นี้', month:'เดือนนี้'}[range]||'';
+  const totalLabel = total > 0 ? `รวม ${total} นาที` : 'ยังไม่มีข้อมูล';
+  if(lbl) lbl.textContent = `สัดส่วนเวลา (%) · ${rangeLabel} · ${totalLabel}`;
+
+  const ctx = document.getElementById('radarChart').getContext('2d');
+  if(radarInst) radarInst.destroy();
+  radarInst = new Chart(ctx,{
+    type:'radar',
+    data:{labels:CATS, datasets:[{
+      label:'% เวลา', data, fill:true,
+      backgroundColor:'rgba(59,130,246,0.12)', borderColor:'#3B82F6',
+      pointBackgroundColor: CAT_CLR,
+      pointBorderColor:'white',
+      pointRadius:5, borderWidth:2.5,
+    }]},
+    options:{responsive:true,
+      scales:{r:{min:0,max:100,
+        ticks:{stepSize:25,font:{size:9},color:'#94A3B8',
+          callback: v => v+'%'},
+        pointLabels:{font:{size:12,family:'Sarabun',weight:'600'},color:'#334155'},
+        grid:{color:'#E2E8F0'}, angleLines:{color:'#CBD5E1'},
+      }},
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label: ctx => ` ${ctx.raw}%  (${catMins[CATS[ctx.dataIndex]]} นาที)`}},
+      },
+    }
+  });
+}
+
+// ════════════════════════════════════════════════════
+// LOG
+// ════════════════════════════════════════════════════
+function renderLog() {
+  const k = dkey(logDate);
+  document.getElementById('log-date-main').textContent = dateTH(logDate);
+  document.getElementById('log-date-sub').textContent  = 'วัน'+DAY_TH[logDate.getDay()];
+
+  const th = themeForDate(logDate);
+  const pill = document.getElementById('log-theme-pill');
+  if(th){ pill.textContent='🌌 '+th; pill.style.display=''; }
+  else pill.style.display='none';
+
+  // Load saved day — _ld is ONLY what was saved for this day (or empty)
+  const saved = logs[k];
+  _ld = saved ? saved.map(e=>({...e})) : [];
+
+  renderLibChips();
+  document.getElementById('log-list').innerHTML = _ld.map(actCard).join('');
+  refreshStar();
+}
+
+function renderLibChips() {
+  const panel = document.getElementById('lib-chips');
+  const noActs = document.getElementById('lib-no-acts');
+  if(!acts.length){ noActs.style.display='block'; panel.innerHTML=''; return; }
+  noActs.style.display='none';
+  // Show all library acts; grey-out those already added today
+  const addedNames = new Set(_ld.map(e=>e.name+'|'+e.cat));
+  panel.innerHTML = acts.map((a,i)=>{
+    const col = CAT_CLR[CATS.indexOf(a.cat)] || '#64748B';
+    const added = addedNames.has(a.name+'|'+a.cat);
+    return `<button class="lib-chip ${added?'added':''}" onclick="addFromLib(${i})">
+      <span class="chip-dot" style="background:${col}"></span>
+      ${a.name}
+      <span style="font-size:11px;opacity:.6">${a.cat}</span>
+      ${added?'<span style="font-size:11px">✓</span>':'<span style="font-size:14px">+</span>'}
+    </button>`;
+  }).join('');
+}
+
+function addFromLib(i) {
+  const a = acts[i];
+  const already = _ld.find(e=>e.name===a.name&&e.cat===a.cat);
+  if(already) return; // already added
+  _ld.push({cat:a.cat,name:a.name,mins:a.mins,done:null,actualMins:'',mood:0,score:'',scoreMax:'',note:''});
+  document.getElementById('log-list').innerHTML = _ld.map(actCard).join('');
+  renderLibChips();
+  refreshStar();
+}
+
+function actCard(e,i) {
+  const ci=catIdx(e.cat), col=CAT_CLR[ci], light=CAT_LIGHT[ci], dark=CAT_DARK[ci];
+  const dCls=e.done===true?'done':e.done===false?'skip':'';
+  const dIcon=e.done===true?'✓':e.done===false?'✗':'○';
+  const willStar=e.done===true&&e.mood>=4;
+  const hint=e.done===true
+    ?(willStar?`<span class="star-hint" style="color:var(--amber);font-weight:700">⭐ +1 ดาว</span>`
+              :`<span class="star-hint" style="color:var(--ink4)">Mood 😄 = ⭐</span>`)
+    :`<span class="star-hint"></span>`;
+  return `<div class="alc ${e.done?'done-card':''}" id="alc-${i}">
+    <div class="alc-head" onclick="toggleBody(${i})">
+      <div class="alc-stripe" style="background:${col}"></div>
+      <span class="alc-name">${e.name}</span>
+      <span class="alc-cat" style="background:${light};border-color:${col}55;color:${dark}">${e.cat}</span>
+      ${hint}
+      <button class="done-btn ${dCls}" id="db-${i}" onclick="event.stopPropagation();cycleDone(${i})">${dIcon}</button>
+      <button style="width:28px;height:28px;border-radius:50%;border:none;background:var(--rose-l);color:var(--rose);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:2px;" onclick="event.stopPropagation();removeActFromLog(${i})" title="ลบออกจากวันนี้">×</button>
+    </div>
+    <div class="alc-body" id="ab-${i}">
+      <div class="alc-fields">
+        <div>
+          <label class="lbl">เวลา (นาที)</label>
+          <input class="inp" type="number" min="0" max="180" id="lm-${i}" value="${e.actualMins||''}" placeholder="${e.mins}">
+        </div>
+        <div>
+          <label class="lbl">คะแนน (8 หรือ 18/20)</label>
+          <div class="score-row">
+            <input class="inp" id="ls-${i}" value="${e.score||''}" placeholder="เช่น 18" style="flex:1">
+            <span class="score-sep">/</span>
+            <input class="inp" id="lsm-${i}" value="${e.scoreMax||''}" placeholder="20" style="width:72px">
+          </div>
+        </div>
+        <div>
+          <label class="lbl">Mood 😊</label>
+          <div class="mood-row" id="mr-${i}">
+            ${[1,2,3,4,5].map(m=>`<button class="mood-opt ${e.mood===m?'sel':''}" onclick="setMood(${i},${m})">${MOOD_EMOJI[m]}</button>`).join('')}
+          </div>
+        </div>
+      </div>
+      <textarea class="inp" id="ln-${i}" placeholder="บันทึกพิเศษ..." rows="2">${e.note||''}</textarea>
+    </div>
+  </div>`;
+}
+
+function toggleBody(i){ document.getElementById('ab-'+i).classList.toggle('open'); }
+
+function cycleDone(i){
+  const e=_ld[i];
+  e.done=e.done===null||e.done===undefined?true:e.done===true?false:null;
+  const btn=document.getElementById('db-'+i);
+  btn.className='done-btn '+(e.done===true?'done':e.done===false?'skip':'');
+  btn.textContent=e.done===true?'✓':e.done===false?'✗':'○';
+  document.getElementById('alc-'+i).className='alc '+(e.done?'done-card':'');
+  refreshHint(i); refreshStar();
+}
+function setMood(i,m){
+  _ld[i].mood=m;
+  document.querySelectorAll(`#mr-${i} .mood-opt`).forEach((b,j)=>b.classList.toggle('sel',j+1===m));
+  refreshHint(i); refreshStar();
+}
+function refreshHint(i){
+  const e=_ld[i], willStar=e.done===true&&e.mood>=4;
+  const h=document.querySelector(`#alc-${i} .star-hint`); if(!h) return;
+  if(e.done===true){ h.innerHTML=willStar?'⭐ +1 ดาว':'Mood 😄 = ⭐';
+    h.style.color=willStar?'var(--amber)':'var(--ink4)'; h.style.fontWeight=willStar?'700':'400';
+  } else h.innerHTML='';
+}
+function refreshStar(){
+  const done=_ld.filter(e=>e.done===true).length;
+  const high=_ld.filter(e=>e.done===true&&e.mood>=4).length;
+  document.getElementById('star-counter').textContent=`${done}/${_ld.length} ✅  ${high} 😄`;
+}
+function removeActFromLog(i){
+  _ld.splice(i,1);
+  document.getElementById('log-list').innerHTML = _ld.map(actCard).join('');
+  renderLibChips(); // re-enable chip
+  refreshStar();
+}
+function changeDate(delta){
+  // Auto-save current day before navigating
+  if(_ld.length > 0){
+    const k = dkey(logDate);
+    logs[k] = _ld.map((_,i)=>({..._ld[i],
+      actualMins: Number(document.getElementById('lm-'+i)?.value)||'',
+      score:      document.getElementById('ls-'+i)?.value||'',
+      scoreMax:   document.getElementById('lsm-'+i)?.value||'',
+      note:       document.getElementById('ln-'+i)?.value||'',
+    }));
+    persist();
+  }
+  logDate = new Date(logDate); logDate.setDate(logDate.getDate()+delta); renderLog();
+}
+function saveDay(){
+  const k=dkey(logDate);
+  logs[k]=_ld.map((_,i)=>({..._ld[i],
+    actualMins:Number(document.getElementById('lm-'+i)?.value)||'',
+    score:document.getElementById('ls-'+i)?.value||'',
+    scoreMax:document.getElementById('lsm-'+i)?.value||'',
+    note:document.getElementById('ln-'+i)?.value||'',
+  }));
+  persist(); toast('💾 บันทึก '+dateTH(logDate)+' แล้ว!');
+}
+
+// ════════════════════════════════════════════════════
+// ACTIVITY EDITOR
+// ════════════════════════════════════════════════════
+function renderActs(){
+  document.getElementById('ae-list').innerHTML=acts.map((a,i)=>`
+    <div class="ae-row">
+      <select class="ae-cat" id="ec-${i}">
+        ${CATS.map(c=>`<option ${a.cat===c?'selected':''}>${c}</option>`).join('')}
+      </select>
+      <input class="ae-name" id="en-${i}" value="${a.name}" placeholder="ชื่อกิจกรรม">
+      <input class="ae-mins" id="em-${i}" type="number" value="${a.mins}" placeholder="นาที">
+      <span style="font-size:13px;color:var(--ink3)">นาที</span>
+      <button class="del-btn" onclick="delAct(${i})">×</button>
+    </div>`).join('');
+}
+function addAct(){ acts.push({cat:'วิชาการ',name:'',mins:20}); renderActs(); }
+function delAct(i){ acts.splice(i,1); renderActs(); }
+function saveActs(){
+  const upd=acts.map((_,i)=>({
+    cat:document.getElementById('ec-'+i).value,
+    name:document.getElementById('en-'+i).value.trim(),
+    mins:Number(document.getElementById('em-'+i).value)||20,
+  }));
+  acts=upd.filter(a=>a.name); persist(); renderActs();
+  toast('✅ บันทึก Library กิจกรรมแล้ว');
+}
+
+// ════════════════════════════════════════════════════
+// WEEK THEMES
+// ════════════════════════════════════════════════════
+function renderThemeEditor(){
+  const wk=currentWeekNum();
+  document.getElementById('wt-grid').innerHTML=themes.map((t,i)=>`
+    <div class="wt-card ${t.week===wk?'current-week':''}">
+      <div class="wt-wk">WEEK ${t.week} ${t.week===wk?'· สัปดาห์นี้ 🌟':''}</div>
+      <div class="wt-period">📅 ${t.period}</div>
+      <input class="wt-inp" id="wt-${i}" value="${t.theme}" placeholder="ชื่อธีม...">
+    </div>`).join('');
+}
+function saveThemes(){
+  themes=themes.map((t,i)=>({...t,theme:document.getElementById('wt-'+i).value.trim()||t.theme}));
+  persist(); toast('🌌 บันทึกธีมแล้ว');
+}
+
+// ════════════════════════════════════════════════════
+// REPORT
+// ════════════════════════════════════════════════════
+function buildRptOpts(){
+  const sel=document.getElementById('rpt-range');
+  if(sel.options.length>1) return;
+  themes.forEach(t=>{
+    const o=document.createElement('option');
+    o.value=t.week;
+    o.textContent=`สัปดาห์ ${t.week}: ${t.theme} (${t.period})`;
+    sel.appendChild(o);
+  });
+}
+
+function renderReport(){
+  rptCharts.forEach(c=>c.destroy()); rptCharts=[];
+  const val=document.getElementById('rpt-range').value, isAll=val==='all';
+  const sd=startDate();
+  let keys=[], label='ภาพรวม 3 เดือน';
+  if(isAll){
+    for(let d=0;d<90;d++){const dt=new Date(sd);dt.setDate(dt.getDate()+d);keys.push(dkey(dt));}
+  } else {
+    const wk=parseInt(val), t=themes.find(t=>t.week===wk);
+    if(t){ label=`สัปดาห์ ${wk}: ${t.theme}`;
+      for(let d=0;d<7;d++){const dt=new Date(sd);dt.setDate(dt.getDate()+(wk-1)*7+d);keys.push(dkey(dt));}
+    }
+  }
+  const st = computeStats(keys);
+
+  // Time-based data (same as dashboard)
+  const catMins  = computeCatMins(keys);
+  const totalMin = Object.values(catMins).reduce((a,b)=>a+b,0);
+  const catTimePct = CATS.map(c => totalMin>0 ? Math.round(catMins[c]/totalMin*100) : 0);
+
+  // Weekly trend data — cons, mood, stars, totalMins per week
+  const wkData = themes.map(t=>{
+    const wkKeys=[];
+    for(let d=0;d<7;d++){const dt=new Date(sd);dt.setDate(dt.getDate()+(t.week-1)*7+d);wkKeys.push(dkey(dt));}
+    const ws = computeStats(wkKeys);
+    const wm = computeCatMins(wkKeys);
+    const wmTotal = Object.values(wm).reduce((a,b)=>a+b,0);
+    return {
+      l:`ส.${t.week}`,
+      cons: ws.cons,
+      mood: ws.avgMood ? parseFloat(ws.avgMood)*20 : 0,  // scale to 0-100
+      stars: ws.stars,
+      mins: Math.min(wmTotal, 300), // cap at 300min for chart scale
+    };
+  });
+
+  document.getElementById('rpt-content').innerHTML=`
+  <div class="g4 mb">
+    ${[
+      {l:'ความสม่ำเสมอ', v:st.cons+'%',              ac:'var(--sky)'},
+      {l:'กิจกรรมสำเร็จ', v:st.tDone+'/'+st.tPoss,   ac:'var(--green)'},
+      {l:'Mood เฉลี่ย',   v:st.avgMood||'—',          ac:'var(--amber)'},
+      {l:'ดาวสะสม',       v:st.stars+'⭐',            ac:'var(--purple)'},
+    ].map(k=>`<div class="kpi" style="--accent:${k.ac}"><div class="kpi-val">${k.v}</div><div class="kpi-label">${k.l}</div></div>`).join('')}
+  </div>
+
+  <div class="rpt-charts mb">
+    <div class="card">
+      <div class="card-title">🕸️ สัดส่วนเวลาแต่ละด้าน</div>
+      <div style="font-size:11px;color:var(--ink4);text-align:center;margin-bottom:6px;">% ของเวลารวม${totalMin>0?' · รวม '+totalMin+' นาที':' · ยังไม่มีข้อมูล'}</div>
+      <div style="display:flex;justify-content:center;"><canvas id="rr" width="250" height="250"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">⏱️ เวลาแต่ละด้าน (นาที)</div>
+      <canvas id="rb" height="200"></canvas>
+    </div>
+  </div>
+
+  ${isAll?`<div class="card mb">
+    <div class="card-title">📈 พัฒนาการรายสัปดาห์</div>
+    <div style="font-size:11px;color:var(--ink4);margin-bottom:8px;">
+      <span style="color:#3B82F6;font-weight:600;">━</span> % สม่ำเสมอ &nbsp;
+      <span style="color:#D97706;font-weight:600;">━</span> Mood (×20) &nbsp;
+      <span style="color:#7C3AED;font-weight:600;">━</span> ดาว (×5) &nbsp;
+      <span style="color:#0D9488;font-weight:600;">━</span> เวลารวม (นาที)
+    </div>
+    <canvas id="rt" height="140"></canvas>
+  </div>`:''}
+
+  <div class="card">
+    <div class="card-title">🗂️ ผลแยกตามด้าน</div>
+    <div style="overflow-x:auto">
+    <table class="rtable">
+      <tr><th>ด้าน</th><th>ทำแล้ว</th><th>เวลา (นาที)</th><th>% เวลา</th><th>Mood เฉลี่ย</th><th style="min-width:140px">สัดส่วน</th></tr>
+      ${CATS.map((c,i)=>{
+        const mins=catMins[c]||0;
+        const pct=catTimePct[i];
+        const moo=st.catAvg[c]?st.catAvg[c].toFixed(1):'—';
+        return `<tr>
+          <td><span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:${CAT_CLR[i]};margin-right:8px;vertical-align:middle"></span>${c}</td>
+          <td style="color:var(--green);font-weight:700">${st.catDone[c]||0}</td>
+          <td style="color:var(--sky);font-weight:600">${mins}</td>
+          <td style="font-family:'Prompt',sans-serif;font-weight:700;font-size:16px;color:${CAT_CLR[i]}">${pct}%</td>
+          <td>${moo!=='—'?MOOD_EMOJI[Math.round(parseFloat(moo))]+' '+moo:'—'}</td>
+          <td><div class="mbar"><div class="mfill" style="width:${pct}%;background:${CAT_CLR[i]}"></div></div></td>
+        </tr>`;}).join('')}
+    </table></div>
+  </div>`;
+
+  requestAnimationFrame(()=>{
+    // Radar — % time per category
+    const rr=document.getElementById('rr')?.getContext('2d');
+    if(rr){
+      const c=new Chart(rr,{type:'radar',
+        data:{labels:CATS,datasets:[{label:'% เวลา',
+          data:catTimePct, fill:true,
+          backgroundColor:'rgba(59,130,246,.1)',borderColor:'#3B82F6',
+          pointBackgroundColor:CAT_CLR,pointBorderColor:'white',
+          borderWidth:2,pointRadius:5}]},
+        options:{responsive:true,
+          scales:{r:{min:0,max:100,
+            ticks:{stepSize:25,color:'#94A3B8',font:{size:9},callback:v=>v+'%'},
+            pointLabels:{color:'#334155',font:{size:12,family:'Sarabun'}},
+            grid:{color:'#E2E8F0'},angleLines:{color:'#CBD5E1'}}},
+          plugins:{legend:{display:false},
+            tooltip:{callbacks:{label:ctx=>' '+ctx.raw+'%  ('+catMins[CATS[ctx.dataIndex]]+' นาที)'}}}}});
+      rptCharts.push(c);
+    }
+
+    // Bar — actual minutes per category
+    const rb=document.getElementById('rb')?.getContext('2d');
+    if(rb){
+      const c=new Chart(rb,{type:'bar',
+        data:{labels:CATS,datasets:[{
+          label:'นาที',data:CATS.map(c=>catMins[c]||0),
+          backgroundColor:CAT_CLR.map(c=>c+'66'),borderColor:CAT_CLR,
+          borderWidth:2,borderRadius:8}]},
+        options:{responsive:true,plugins:{legend:{display:false}},
+          scales:{
+            x:{ticks:{font:{size:12,family:'Sarabun'},color:'#334155'},grid:{display:false}},
+            y:{ticks:{font:{size:11},color:'#94A3B8'},grid:{color:'#F1F5F9'},
+              title:{display:true,text:'นาที',color:'#94A3B8',font:{size:11}}}}}});
+      rptCharts.push(c);
+    }
+
+    // Line trend — 4 variables
+    if(isAll){
+      const rt=document.getElementById('rt')?.getContext('2d');
+      if(rt){
+        const c=new Chart(rt,{type:'line',
+          data:{labels:wkData.map(w=>w.l),
+            datasets:[
+              {label:'% สม่ำเสมอ', data:wkData.map(w=>w.cons),
+                borderColor:'#3B82F6',backgroundColor:'rgba(59,130,246,.06)',
+                tension:.4,fill:true,pointRadius:4,pointBackgroundColor:'#3B82F6',yAxisID:'y'},
+              {label:'Mood ×20',   data:wkData.map(w=>w.mood),
+                borderColor:'#D97706',backgroundColor:'transparent',
+                tension:.4,fill:false,pointRadius:4,pointBackgroundColor:'#D97706',yAxisID:'y'},
+              {label:'ดาว ×5',    data:wkData.map(w=>w.stars*5),
+                borderColor:'#7C3AED',backgroundColor:'transparent',
+                tension:.4,fill:false,pointRadius:4,pointBackgroundColor:'#7C3AED',
+                borderDash:[4,3],yAxisID:'y'},
+              {label:'เวลา (นาที)',data:wkData.map(w=>w.mins),
+                borderColor:'#0D9488',backgroundColor:'transparent',
+                tension:.4,fill:false,pointRadius:4,pointBackgroundColor:'#0D9488',
+                borderDash:[2,2],yAxisID:'y2'},
+            ]},
+          options:{responsive:true,
+            plugins:{legend:{display:false}},
+            scales:{
+              x:{ticks:{font:{size:11,family:'Sarabun'},color:'#334155'},grid:{display:false}},
+              y:{min:0,max:100,position:'left',
+                ticks:{font:{size:10},color:'#94A3B8'},
+                grid:{color:'#F1F5F9'},
+                title:{display:true,text:'% / คะแนน',color:'#94A3B8',font:{size:10}}},
+              y2:{min:0,max:300,position:'right',
+                ticks:{font:{size:10},color:'#0D9488'},
+                grid:{display:false},
+                title:{display:true,text:'นาที',color:'#0D9488',font:{size:10}}},
+            }}});
+        rptCharts.push(c);
+      }
+    }
+  });
+}
+
+// ════════════════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════════════════
+let _tt;
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(_tt); _tt=setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ════════════════════════════════════════════════════
+// INIT — version-based migration
+// ════════════════════════════════════════════════════
+(function migrate(){
+  const DATA_VER = 'v6'; // bump this to force-clear stale cache
+  const storedVer = localStorage.getItem('lt4_ver');
+  if(storedVer !== DATA_VER){
+    // Clear themes cache so DEFAULT_THEMES (with start/end) take effect
+    localStorage.removeItem('lt4_themes');
+    // Clear acts if they look like defaults
+    // Re-merge themes fresh from DEFAULT
+    themes = DEFAULT_THEMES.map(def=>({...def}));
+    localStorage.setItem('lt4_ver', DATA_VER);
+  }
+})();
+updateBrand();
+renderDash();
+</script>
+</body>
+</html>
